@@ -24,4 +24,4 @@ class PaginatedResponse(BaseModel):
     por_pagina: int
     pagina_actual: int
     total_paginas: int
-    data: List[FAQCategoryResponse] | List[FAQResponse]
+    data: List[FAQCategoryResponse]
