@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from controllers.faq_controller import router as faq_router
 from controllers.guide_controller import router as guide_router
 from controllers.support_controller import router as support_router
@@ -6,6 +7,19 @@ from controllers.user_controller import router as user_router
 from database import Base, engine
 
 app = FastAPI()
+
+# Configurar CORS
+origins = [
+    "*"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # Permite todos los métodos (GET, POST, etc.)
+    allow_headers=["*"],  # Permite todos los encabezados
+)
 
 # Crea las tablas
 Base.metadata.create_all(bind=engine)
