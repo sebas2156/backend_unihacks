@@ -7,6 +7,7 @@ from models.persona import Persona
 from schemas.persona_schema import PersonaCreate, PersonaResponse, PaginatedPersonaResponse
 from database import SessionLocal
 from .auth import get_current_user  # Importamos la función para obtener el usuario actual
+from utils.logs import log_action #funcion de logs
 
 router = APIRouter()
 
@@ -25,6 +26,10 @@ def create_persona(persona: PersonaCreate, db: Session = Depends(get_db), curren
     db.add(db_persona)
     db.commit()
     db.refresh(db_persona)
+
+    # Registrar el log
+    log_action(db, action_type="POST", endpoint="/personas/", user_id=current_user["id"], details=str(persona.dict()))
+
     return db_persona
 
 # Obtener lista de personas con paginación
@@ -59,6 +64,11 @@ def update_persona(persona_id: int, persona: PersonaCreate, db: Session = Depend
     for key, value in persona.dict().items():
         setattr(db_persona, key, value)
     db.commit()
+
+    # Registrar el log
+    log_action(db, action_type="PUT", endpoint=f"/personas/{persona_id}", user_id=current_user["id"],
+               details=str(persona.dict()))
+
     return db_persona
 
 # Eliminar persona por ID
@@ -69,4 +79,8 @@ def delete_persona(persona_id: int, db: Session = Depends(get_db), current_user:
         raise HTTPException(status_code=404, detail="Persona not found")
     db.delete(db_persona)
     db.commit()
+
+    # Registrar el log
+    log_action(db, action_type="DELETE", endpoint=f"/personas/{persona_id}", user_id=current_user["id"])
+
     return {"detail": "Persona deleted"}

@@ -7,6 +7,7 @@ from schemas.faq_schema import FAQCategoryCreate, FAQCategoryResponse, FAQCreate
 from database import SessionLocal
 from uuid import UUID
 from .auth import get_current_user  # Importamos la función para obtener el usuario actual
+from utils.logs import log_action #funcion de logs
 
 router = APIRouter()
 
@@ -26,6 +27,11 @@ def create_faq_category(category: FAQCategoryCreate, db: Session = Depends(get_d
     db.add(db_category)
     db.commit()
     db.refresh(db_category)
+
+    # Registrar el log para la acción
+    log_action(db, action_type="POST", endpoint="/faq-categories/", user_id=current_user["id"],
+               details=str(category.dict()))
+
     return db_category
 
 @router.get("/faq-categories/", response_model=PaginatedResponse, tags=["FAQ"])
@@ -58,6 +64,11 @@ def update_faq_category(category_id: int, category: FAQCategoryCreate, db: Sessi
     for key, value in category.dict().items():
         setattr(db_category, key, value)
     db.commit()
+
+    # Registrar el log para la acción
+    log_action(db, action_type="PUT", endpoint=f"/faq-categories/{category_id}", user_id=current_user["id"],
+               details=str(category.dict()))
+
     return db_category
 
 @router.delete("/faq-categories/{category_id}", tags=["FAQ"])
@@ -67,6 +78,10 @@ def delete_faq_category(category_id: int, db: Session = Depends(get_db), current
         raise HTTPException(status_code=404, detail="Category not found")
     db.delete(db_category)
     db.commit()
+
+    # Registrar el log para la acción
+    log_action(db, action_type="DELETE", endpoint=f"/faq-categories/{category_id}", user_id=current_user["id"])
+
     return {"detail": "Category deleted"}
 
 # CRUD para FAQs
@@ -77,6 +92,10 @@ def create_faq(faq: FAQCreate, db: Session = Depends(get_db), current_user: dict
     db.add(db_faq)
     db.commit()
     db.refresh(db_faq)
+
+    # Registrar el log para la acción
+    log_action(db, action_type="POST", endpoint="/faqs/", user_id=current_user["id"], details=str(faq.dict()))
+
     return db_faq
 
 @router.get("/faqs/", response_model=PaginatedResponse, tags=["FAQs"])
@@ -112,6 +131,10 @@ def update_faq(faq_id: int, faq: FAQCreate, db: Session = Depends(get_db), curre
 
     db.commit()
     db.refresh(db_faq)
+
+    # Registrar el log para la acción
+    log_action(db, action_type="PUT", endpoint=f"/faqs/{faq_id}", user_id=current_user["id"], details=str(faq.dict()))
+
     return db_faq
 
 @router.delete("/faqs/{faq_id}", tags=["FAQs"])
@@ -122,4 +145,8 @@ def delete_faq(faq_id: int, db: Session = Depends(get_db), current_user: dict = 
 
     db.delete(db_faq)
     db.commit()
+
+    # Registrar el log para la acción
+    log_action(db, action_type="DELETE", endpoint=f"/faqs/{faq_id}", user_id=current_user["id"])
+
     return {"detail": "FAQ eliminada con éxito"}

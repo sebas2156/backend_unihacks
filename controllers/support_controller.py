@@ -7,6 +7,7 @@ from models.support import SupportRequest
 from schemas.support_schema import SupportRequestCreate, SupportRequestResponse, PaginatedResponse
 from database import SessionLocal
 from .auth import get_current_user  # Importamos la función para obtener el usuario actual
+from utils.logs import log_action #funcion de logs
 
 router = APIRouter()
 
@@ -27,6 +28,11 @@ def create_support_request(request: SupportRequestCreate, db: Session = Depends(
     db.add(db_request)
     db.commit()
     db.refresh(db_request)
+
+    # Registrar el log para la acción
+    log_action(db, action_type="POST", endpoint="/support-requests/", user_id=current_user["id"],
+               details=str(request.dict()))
+
     return db_request
 
 @router.get("/support-requests/", response_model=PaginatedResponse, tags=["Support Request"])
@@ -58,6 +64,11 @@ def update_support_request(request_id: int, request: SupportRequestCreate, db: S
     for key, value in request.dict().items():
         setattr(db_request, key, value)
     db.commit()
+
+    # Registrar el log para la acción
+    log_action(db, action_type="PUT", endpoint=f"/support-requests/{request_id}", user_id=current_user["id"],
+               details=str(request.dict()))
+
     return db_request
 
 @router.delete("/support-requests/{request_id}", tags=["Support Request"])
@@ -67,4 +78,8 @@ def delete_support_request(request_id: int, db: Session = Depends(get_db), curre
         raise HTTPException(status_code=404, detail="Request not found")
     db.delete(db_request)
     db.commit()
+
+    # Registrar el log para la acción
+    log_action(db, action_type="DELETE", endpoint=f"/support-requests/{request_id}", user_id=current_user["id"])
+
     return {"detail": "Request deleted"}

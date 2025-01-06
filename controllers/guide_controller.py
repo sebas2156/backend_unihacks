@@ -7,6 +7,7 @@ from models.guide import Guide, GuideCategory
 from schemas.guide_schema import GuideCreate, GuideResponse, GuideCategoryCreate, GuideCategoryResponse, PaginatedResponse
 from database import SessionLocal
 from .auth import get_current_user  # Importamos la función para obtener el usuario actual
+from utils.logs import log_action #funcion de logs
 
 router = APIRouter()
 
@@ -26,6 +27,11 @@ def create_guide_category(category: GuideCategoryCreate, db: Session = Depends(g
     db.add(db_category)
     db.commit()
     db.refresh(db_category)
+
+    # Registrar el log para la acción
+    log_action(db, action_type="POST", endpoint="/guide-categories/", user_id=current_user["id"],
+               details=str(category.dict()))
+
     return db_category
 
 @router.get("/guide-categories/", response_model=PaginatedResponse, tags=["guide"])
@@ -58,6 +64,11 @@ def update_guide_category(category_id: int, category: GuideCategoryCreate, db: S
     for key, value in category.dict().items():
         setattr(db_category, key, value)
     db.commit()
+
+    # Registrar el log para la acción
+    log_action(db, action_type="PUT", endpoint=f"/guide-categories/{category_id}", user_id=current_user["id"],
+               details=str(category.dict()))
+
     return db_category
 
 @router.delete("/guide-categories/{category_id}", tags=["guide"])
@@ -67,6 +78,10 @@ def delete_guide_category(category_id: int, db: Session = Depends(get_db), curre
         raise HTTPException(status_code=404, detail="Category not found")
     db.delete(db_category)
     db.commit()
+
+    # Registrar el log para la acción
+    log_action(db, action_type="DELETE", endpoint=f"/guide-categories/{category_id}", user_id=current_user["id"])
+
     return {"detail": "Category deleted"}
 
 # Rutas CRUD para Guide
@@ -77,6 +92,10 @@ def create_guide(guide: GuideCreate, db: Session = Depends(get_db), current_user
     db.add(db_guide)
     db.commit()
     db.refresh(db_guide)
+
+    # Registrar el log para la acción
+    log_action(db, action_type="POST", endpoint="/guides/", user_id=current_user["id"], details=str(guide.dict()))
+
     return db_guide
 
 @router.get("/guides/", response_model=PaginatedResponse, tags=["guide"])
@@ -109,6 +128,11 @@ def update_guide(guide_id: int, guide: GuideCreate, db: Session = Depends(get_db
     for key, value in guide.dict().items():
         setattr(db_guide, key, value)
     db.commit()
+
+    # Registrar el log para la acción
+    log_action(db, action_type="PUT", endpoint=f"/guides/{guide_id}", user_id=current_user["id"],
+               details=str(guide.dict()))
+
     return db_guide
 
 @router.delete("/guides/{guide_id}", tags=["guide"])
@@ -118,4 +142,8 @@ def delete_guide(guide_id: int, db: Session = Depends(get_db), current_user: dic
         raise HTTPException(status_code=404, detail="Guide not found")
     db.delete(db_guide)
     db.commit()
+
+    # Registrar el log para la acción
+    log_action(db, action_type="DELETE", endpoint=f"/guides/{guide_id}", user_id=current_user["id"])
+
     return {"detail": "Guide deleted"}

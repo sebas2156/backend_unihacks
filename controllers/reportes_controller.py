@@ -6,6 +6,7 @@ from models.reportes import Reporte  # Suponiendo que el modelo se llama 'Report
 from schemas.reporte_schema import ReporteCreate, ReporteResponse, PaginatedReporteResponse
 from database import SessionLocal
 from .auth import get_current_user  # Importamos la función para obtener el usuario actual
+from utils.logs import log_action #funcion de logs
 
 router = APIRouter()
 
@@ -24,6 +25,10 @@ def create_report(report: ReporteCreate, db: Session = Depends(get_db), current_
     db.add(db_report)
     db.commit()
     db.refresh(db_report)
+
+    # Registrar el log
+    log_action(db, action_type="POST", endpoint="/reportes/", user_id=current_user["id"], details=str(report.dict()))
+
     return db_report
 
 # Obtener lista de reportes con paginación
@@ -58,6 +63,11 @@ def update_report(report_id: int, report: ReporteCreate, db: Session = Depends(g
     for key, value in report.dict().items():
         setattr(db_report, key, value)  # Actualiza los campos de la base de datos
     db.commit()
+
+    # Registrar el log
+    log_action(db, action_type="PUT", endpoint=f"/reportes/{report_id}", user_id=current_user["id"],
+               details=str(report.dict()))
+
     return db_report
 
 # Eliminar reporte por ID
@@ -68,4 +78,8 @@ def delete_report(report_id: int, db: Session = Depends(get_db), current_user: d
         raise HTTPException(status_code=404, detail="Reporte no encontrado")
     db.delete(db_report)  # Elimina el reporte de la base de datos
     db.commit()
+
+    # Registrar el log
+    log_action(db, action_type="DELETE", endpoint=f"/reportes/{report_id}", user_id=current_user["id"])
+
     return {"detail": "Reporte eliminado"}

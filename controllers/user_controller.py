@@ -11,13 +11,11 @@ from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
+from .auth import get_current_user, create_access_token  # Importamos la función para obtener el usuario actual
+from utils.logs import log_action #funcion de logs
 
 router = APIRouter()
 
-# Secret key to encode/decode JWT
-SECRET_KEY = "your_secret_key"  # Cambia esto por una clave secreta segura
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30  # Expiración del token en minutos
 
 
 # Dependencia para obtener la sesión de la base de datos
@@ -29,37 +27,6 @@ def get_db():
         db.close()
 
 
-# Función para encriptar la contraseña con bcrypt
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# Crear el esquema OAuth2PasswordBearer
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
-
-# Función para crear el JWT
-def create_access_token(data: dict, expires_delta: timedelta = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + expires_delta
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-
-# Función para obtener el usuario actual a partir del JWT
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=401,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
-        if user_id is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
-    return {"user_id": user_id}
 
 
 # Crear un nuevo usuario
@@ -72,6 +39,10 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+
+    # Registrar la acción de creación de usuario
+    log_action(db, action_type="POST", endpoint="/users/", user_id=db_user.id, details=str(user.dict()))
+
     return db_user
 
 
@@ -110,6 +81,10 @@ def update_user(user_id: int, user: UserCreate, db: Session = Depends(get_db)):
     for key, value in user.dict().items():
         setattr(db_user, key, value)
     db.commit()
+
+    # Registrar la acción de actualización de usuario
+    log_action(db, action_type="PUT", endpoint=f"/users/{user_id}", user_id=db_user.id, details=str(user.dict()))
+
     return db_user
 
 
@@ -121,11 +96,15 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     db.delete(db_user)
     db.commit()
+
+    # Registrar la acción de eliminación de usuario
+    log_action(db, action_type="DELETE", endpoint=f"/users/{user_id}", user_id=user_id)
+
     return {"detail": "User deleted"}
 
 
 # Ruta de login, genera un JWT cuando el usuario inicia sesión
-@router.post("/login/", response_model=UserResponse, tags=["User"])
+@router.post("/login/", tags=["User"])
 def login(login: Login, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == login.email).first()
     if not user or not bcrypt.checkpw(login.password.encode('utf-8'), user.password.encode('utf-8')):
@@ -133,4 +112,9 @@ def login(login: Login, db: Session = Depends(get_db)):
 
     # Crear el JWT
     access_token = create_access_token(data={"sub": str(user.id)})
+
+    # Log de intento de login exitoso
+    log_action(db, action_type="LOGIN_SUCCESS", endpoint="/login/", user_id=user.id,
+               details=f"Email: {login.email} - Successful login")
+
     return {"access_token": access_token, "token_type": "bearer", "user": user}
