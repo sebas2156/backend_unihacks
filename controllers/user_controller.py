@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Form
 from sqlalchemy.orm import Session
 from typing import List
 from sqlalchemy import func
@@ -98,23 +98,36 @@ def delete_user(user_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     # Registrar la acción de eliminación de usuario
-    log_action(db, action_type="DELETE", endpoint=f"/users/{user_id}", user_id=user_id)
+    log_action(db, action_type="DELETE", endpoint=f"/users/{user_id}", user_id=user_id, details=db_user.email)
 
     return {"detail": "User deleted"}
 
 
 # Ruta de login, genera un JWT cuando el usuario inicia sesión
 @router.post("/login/", tags=["User"])
-def login(login: Login, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == login.email).first()
-    if not user or not bcrypt.checkpw(login.password.encode('utf-8'), user.password.encode('utf-8')):
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
+def login(
+    username: str = Form(...),  # Recibe el email desde el formulario
+    password: str = Form(...),  # Recibe la contraseña desde el formulario
+    db: Session = Depends(get_db)
+):
+    # Busca al usuario en la base de datos por su email
+    user = db.query(User).filter(User.email == username).first()
 
-    # Crear el JWT
+    # Verifica si el usuario existe y la contraseña es correcta
+    if not user or not bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
+        raise HTTPException(status_code=400, detail="Correo electrónico o contraseña incorrectos")
+
+    # Crear el JWT (token de acceso)
     access_token = create_access_token(data={"sub": str(user.id)})
 
-    # Log de intento de login exitoso
+    # Log de intento de login exitoso (esto es opcional)
     log_action(db, action_type="LOGIN_SUCCESS", endpoint="/login/", user_id=user.id,
-               details=f"Email: {login.email} - Successful login")
+               details=f"Email: {username} - Inicio de sesión exitoso")
 
-    return {"access_token": access_token, "token_type": "bearer", "user": user}
+    # Respuesta con el token y los detalles del usuario
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_id": user.id,
+        "email": user.email
+    }

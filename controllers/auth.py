@@ -14,7 +14,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30  # Tiempo de expiración del token
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # OAuth2PasswordBearer para manejar la extracción del token desde las cabeceras de autorización
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/login/")
 
 # Función para crear el token de acceso
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):

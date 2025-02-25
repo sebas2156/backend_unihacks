@@ -9,5 +9,5 @@ class Log(Base):
     action_type = Column(Text, nullable=False)  # POST, PUT, DELETE
     endpoint = Column(Text, nullable=False)
     user_id = Column(Integer, nullable=False)  # Asumiendo que el usuario tiene un ID numérico
-    timestamp = Column(DateTime, server_default=func.now())
+    timestamp = Column(DateTime, default=func.now())
     details = Column(Text, nullable=True)  # Detalles de la operación si es necesario
