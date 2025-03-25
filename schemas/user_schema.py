@@ -9,7 +9,7 @@ class UserCreate(BaseModel):
     avatar: str
     status: str
     role: str
-
+    numero : int
 class UserResponse(UserCreate):
     id: int
 

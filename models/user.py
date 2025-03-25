@@ -12,3 +12,4 @@ class User(Base):
     avatar = Column(Text, nullable=False)
     status = Column(Text, nullable=False)
     role = Column(Text, nullable=False)
+    numero = Column(Integer, nullable=False)
