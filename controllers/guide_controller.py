@@ -29,7 +29,7 @@ def create_guide_category(category: GuideCategoryCreate, db: Session = Depends(g
     db.refresh(db_category)
 
     # Registrar el log para la acción
-    log_action(db, action_type="POST", endpoint="/guide-categories/", user_id=current_user["id"],
+    log_action(db, action_type="POST", endpoint="/guide-categories/", user_id=current_user["sub"],
                details=str(category.dict()))
 
     return db_category
@@ -66,7 +66,7 @@ def update_guide_category(category_id: int, category: GuideCategoryCreate, db: S
     db.commit()
 
     # Registrar el log para la acción
-    log_action(db, action_type="PUT", endpoint=f"/guide-categories/{category_id}", user_id=current_user["id"],
+    log_action(db, action_type="PUT", endpoint=f"/guide-categories/{category_id}", user_id=current_user["sub"],
                details=str(category.dict()))
 
     return db_category
@@ -80,7 +80,7 @@ def delete_guide_category(category_id: int, db: Session = Depends(get_db), curre
     db.commit()
 
     # Registrar el log para la acción
-    log_action(db, action_type="DELETE", endpoint=f"/guide-categories/{category_id}", user_id=current_user["id"])
+    log_action(db, action_type="DELETE", endpoint=f"/guide-categories/{category_id}", user_id=current_user["sub"])
 
     return {"detail": "Category deleted"}
 
@@ -94,7 +94,7 @@ def create_guide(guide: GuideCreate, db: Session = Depends(get_db), current_user
     db.refresh(db_guide)
 
     # Registrar el log para la acción
-    log_action(db, action_type="POST", endpoint="/guides/", user_id=current_user["id"], details=str(guide.dict()))
+    log_action(db, action_type="POST", endpoint="/guides/", user_id=current_user["sub"], details=str(guide.dict()))
 
     return db_guide
 
@@ -130,7 +130,7 @@ def update_guide(guide_id: int, guide: GuideCreate, db: Session = Depends(get_db
     db.commit()
 
     # Registrar el log para la acción
-    log_action(db, action_type="PUT", endpoint=f"/guides/{guide_id}", user_id=current_user["id"],
+    log_action(db, action_type="PUT", endpoint=f"/guides/{guide_id}", user_id=current_user["sub"],
                details=str(guide.dict()))
 
     return db_guide
@@ -144,6 +144,6 @@ def delete_guide(guide_id: int, db: Session = Depends(get_db), current_user: dic
     db.commit()
 
     # Registrar el log para la acción
-    log_action(db, action_type="DELETE", endpoint=f"/guides/{guide_id}", user_id=current_user["id"])
+    log_action(db, action_type="DELETE", endpoint=f"/guides/{guide_id}", user_id=current_user["sub"])
 
     return {"detail": "Guide deleted"}

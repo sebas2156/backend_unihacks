@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Text, Integer
+from sqlalchemy import Column, Text, Integer, ARRAY, String
 from sqlalchemy.dialects.postgresql import UUID
 from database import Base
 
@@ -17,4 +17,4 @@ class Persona(Base):
     estado_investigacion = Column(Text, nullable=False)
     fecha_desaparicion = Column(Text, nullable=False)
     foto = Column(Text, nullable=False)
-    caracteristicas = Column(Text, nullable=True)
+    caracteristicas = Column(ARRAY(String), nullable=True)

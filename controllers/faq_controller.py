@@ -29,7 +29,7 @@ def create_faq_category(category: FAQCategoryCreate, db: Session = Depends(get_d
     db.refresh(db_category)
 
     # Registrar el log para la acción
-    log_action(db, action_type="POST", endpoint="/faq-categories/", user_id=current_user["id"],
+    log_action(db, action_type="POST", endpoint="/faq-categories/", user_id=current_user["sub"],
                details=str(category.dict()))
 
     return db_category
@@ -66,7 +66,7 @@ def update_faq_category(category_id: int, category: FAQCategoryCreate, db: Sessi
     db.commit()
 
     # Registrar el log para la acción
-    log_action(db, action_type="PUT", endpoint=f"/faq-categories/{category_id}", user_id=current_user["id"],
+    log_action(db, action_type="PUT", endpoint=f"/faq-categories/{category_id}", user_id=current_user["sub"],
                details=str(category.dict()))
 
     return db_category
@@ -80,7 +80,7 @@ def delete_faq_category(category_id: int, db: Session = Depends(get_db), current
     db.commit()
 
     # Registrar el log para la acción
-    log_action(db, action_type="DELETE", endpoint=f"/faq-categories/{category_id}", user_id=current_user["id"])
+    log_action(db, action_type="DELETE", endpoint=f"/faq-categories/{category_id}", user_id=current_user["sub"])
 
     return {"detail": "Category deleted"}
 
@@ -94,7 +94,7 @@ def create_faq(faq: FAQCreate, db: Session = Depends(get_db), current_user: dict
     db.refresh(db_faq)
 
     # Registrar el log para la acción
-    log_action(db, action_type="POST", endpoint="/faqs/", user_id=current_user["id"], details=str(faq.dict()))
+    log_action(db, action_type="POST", endpoint="/faqs/", user_id=current_user["sub"], details=str(faq.dict()))
 
     return db_faq
 
@@ -133,7 +133,7 @@ def update_faq(faq_id: int, faq: FAQCreate, db: Session = Depends(get_db), curre
     db.refresh(db_faq)
 
     # Registrar el log para la acción
-    log_action(db, action_type="PUT", endpoint=f"/faqs/{faq_id}", user_id=current_user["id"], details=str(faq.dict()))
+    log_action(db, action_type="PUT", endpoint=f"/faqs/{faq_id}", user_id=current_user["sub"], details=str(faq.dict()))
 
     return db_faq
 
@@ -147,6 +147,6 @@ def delete_faq(faq_id: int, db: Session = Depends(get_db), current_user: dict = 
     db.commit()
 
     # Registrar el log para la acción
-    log_action(db, action_type="DELETE", endpoint=f"/faqs/{faq_id}", user_id=current_user["id"])
+    log_action(db, action_type="DELETE", endpoint=f"/faqs/{faq_id}", user_id=current_user["sub"])
 
     return {"detail": "FAQ eliminada con éxito"}

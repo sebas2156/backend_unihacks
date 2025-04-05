@@ -27,7 +27,7 @@ def create_report(report: ReporteCreate, db: Session = Depends(get_db), current_
     db.refresh(db_report)
 
     # Registrar el log
-    log_action(db, action_type="POST", endpoint="/reportes/", user_id=current_user["id"], details=str(report.dict()))
+    log_action(db, action_type="POST", endpoint="/reportes/", user_id=current_user["sub"], details=str(report.dict()))
 
     return db_report
 
@@ -65,7 +65,7 @@ def update_report(report_id: int, report: ReporteCreate, db: Session = Depends(g
     db.commit()
 
     # Registrar el log
-    log_action(db, action_type="PUT", endpoint=f"/reportes/{report_id}", user_id=current_user["id"],
+    log_action(db, action_type="PUT", endpoint=f"/reportes/{report_id}", user_id=current_user["sub"],
                details=str(report.dict()))
 
     return db_report
@@ -80,6 +80,6 @@ def delete_report(report_id: int, db: Session = Depends(get_db), current_user: d
     db.commit()
 
     # Registrar el log
-    log_action(db, action_type="DELETE", endpoint=f"/reportes/{report_id}", user_id=current_user["id"])
+    log_action(db, action_type="DELETE", endpoint=f"/reportes/{report_id}", user_id=current_user["sub"])
 
     return {"detail": "Reporte eliminado"}

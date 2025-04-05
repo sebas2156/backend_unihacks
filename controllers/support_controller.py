@@ -30,7 +30,7 @@ def create_support_request(request: SupportRequestCreate, db: Session = Depends(
     db.refresh(db_request)
 
     # Registrar el log para la acción
-    log_action(db, action_type="POST", endpoint="/support-requests/", user_id=current_user["id"],
+    log_action(db, action_type="POST", endpoint="/support-requests/", user_id=current_user["sub"],
                details=str(request.dict()))
 
     return db_request
@@ -66,7 +66,7 @@ def update_support_request(request_id: int, request: SupportRequestCreate, db: S
     db.commit()
 
     # Registrar el log para la acción
-    log_action(db, action_type="PUT", endpoint=f"/support-requests/{request_id}", user_id=current_user["id"],
+    log_action(db, action_type="PUT", endpoint=f"/support-requests/{request_id}", user_id=current_user["sub"],
                details=str(request.dict()))
 
     return db_request
@@ -80,6 +80,6 @@ def delete_support_request(request_id: int, db: Session = Depends(get_db), curre
     db.commit()
 
     # Registrar el log para la acción
-    log_action(db, action_type="DELETE", endpoint=f"/support-requests/{request_id}", user_id=current_user["id"])
+    log_action(db, action_type="DELETE", endpoint=f"/support-requests/{request_id}", user_id=current_user["sub"])
 
     return {"detail": "Request deleted"}

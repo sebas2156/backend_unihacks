@@ -12,7 +12,7 @@ class PersonaCreate(BaseModel):
     lugar_desaparicion: str
     estado_investigacion: str
     foto: str
-    caracteristicas: Optional[str] = None
+    caracteristicas: Optional[List[str]] = None
 
 class PersonaResponse(PersonaCreate):
     id: int

@@ -28,7 +28,7 @@ def create_persona(persona: PersonaCreate, db: Session = Depends(get_db), curren
     db.refresh(db_persona)
 
     # Registrar el log
-    log_action(db, action_type="POST", endpoint="/personas/", user_id=current_user["id"], details=str(persona.dict()))
+    log_action(db, action_type="POST", endpoint="/personas/", user_id=current_user["sub"], details=str(persona.dict()))
 
     return db_persona
 
@@ -66,7 +66,7 @@ def update_persona(persona_id: int, persona: PersonaCreate, db: Session = Depend
     db.commit()
 
     # Registrar el log
-    log_action(db, action_type="PUT", endpoint=f"/personas/{persona_id}", user_id=current_user["id"],
+    log_action(db, action_type="PUT", endpoint=f"/personas/{persona_id}", user_id=current_user["sub"],
                details=str(persona.dict()))
 
     return db_persona
@@ -81,6 +81,6 @@ def delete_persona(persona_id: int, db: Session = Depends(get_db), current_user:
     db.commit()
 
     # Registrar el log
-    log_action(db, action_type="DELETE", endpoint=f"/personas/{persona_id}", user_id=current_user["id"])
+    log_action(db, action_type="DELETE", endpoint=f"/personas/{persona_id}", user_id=current_user["sub"])
 
     return {"detail": "Persona deleted"}
