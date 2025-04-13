@@ -87,9 +87,9 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
             "apellidos": "user.apellido",
             "usuario": "user.usuario",
             "email": user.email,
-            "estado": user.status,
+            "estado": int(user.status),
             "role": str(user.role),
-            "image": "null"
+            "image": None
         }
     }
 # Actualizar usuario por ID
