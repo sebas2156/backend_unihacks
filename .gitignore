@@ -2,3 +2,8 @@
 /.venv
 /backend_unihacks.rar
 /__pycache__
+# Python cache files
+__pycache__/
+.pyc
+.pyo
+.pyd
