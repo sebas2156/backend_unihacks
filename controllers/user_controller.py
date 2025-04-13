@@ -13,6 +13,7 @@ from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from .auth import get_current_user, create_access_token  # Importamos la función para obtener el usuario actual
 from utils.logs import log_action #funcion de logs
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -62,7 +63,7 @@ def read_users(skip: int = Query(0, alias="pagina", ge=0), limit: int = Query(5,
         "data": users
     }
 
-
+"""""
 # Obtener usuario por ID
 @router.get("/users/{user_id}", response_model=UserResponse, tags=["User"])
 def read_user(user_id: int, db: Session = Depends(get_db)):
@@ -70,8 +71,27 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+"""""
+@router.get("/users/{user_id}", tags=["User"])
+def read_user(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
 
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
 
+    return {
+        "message": "User exists",
+        "data": {
+            "usuarios_id": user.id,
+            "nombres": user.name,
+            "apellidos": "user.apellido",
+            "usuario": "user.usuario",
+            "email": user.email,
+            "estado": user.status,
+            "role": str(user.role),
+            "image": "null"
+        }
+    }
 # Actualizar usuario por ID
 @router.put("/users/{user_id}", response_model=UserResponse, tags=["User"])
 def update_user(user_id: int, user: UserCreate, db: Session = Depends(get_db)):
@@ -130,4 +150,37 @@ def login(
         "token_type": "bearer",
         "user_id": user.id,
         "email": user.email
+    }
+
+# Puedes definirlo aquí o importarlo si lo tienes en otro archivo
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+@router.post("/v1/user/login", tags=["User"])
+def login(request: LoginRequest, db: Session = Depends(get_db)):
+    # Buscar usuario por email
+    user = db.query(User).filter(User.email == request.email).first()
+
+    # Validación de existencia y contraseña
+    if not user or not bcrypt.checkpw(request.password.encode('utf-8'), user.password.encode('utf-8')):
+        raise HTTPException(status_code=401, detail="Correo electrónico o contraseña incorrectos")
+
+    # Datos para el token
+    token_data = {
+        "id": str(user.id),
+        "email": user.email,
+        "role": str(user.role)
+    }
+    access_token = create_access_token(data=token_data)
+
+    # Respuesta
+    return {
+        "message": "Inicio de sesión exitoso",
+        "user": {
+            "id": str(user.id),
+            "email": user.email,
+            "role": str(user.role)
+        },
+        "token": access_token
     }
