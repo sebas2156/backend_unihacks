@@ -7,6 +7,8 @@ from controllers.user_controller import router as user_router
 from controllers.personas_controller import router as personas_router
 from controllers.reportes_controller import router as reportes_router
 from controllers.contactos_controller import router as contactos_router
+from controllers.solicitudes_controller import router as solicitudes_router
+from controllers.dispositivos_controller import router as dispositivo_router
 from database import Base, engine
 
 app = FastAPI()
@@ -35,3 +37,5 @@ app.include_router(user_router, prefix="/api", tags=["User"])
 app.include_router(personas_router, prefix="/api", tags=["Personas"])
 app.include_router(reportes_router, prefix="/api", tags=["Reports"])
 app.include_router(contactos_router, prefix="/api", tags=["Contactos"])
+app.include_router(solicitudes_router, prefix="/api", tags=["Solicitudes"])
+app.include_router(dispositivo_router, prefix="/api", tags=["Dispositivos"])
