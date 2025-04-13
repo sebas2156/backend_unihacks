@@ -2,6 +2,8 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 class ReporteCreate(BaseModel):
+    id_usuario: int
+    id_persona: int
     nombre: Optional[str] = None
     email: Optional[str] = None
     telefono: Optional[int] = None

@@ -2,10 +2,10 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 class ContactosCreate(BaseModel):
-    nombre: str
-    telefono: int
-    linea_telefonica :int
-    accion : str
+    id_usuario: int
+    nombre_contacto: str
+    linea_telefonica: str
+    numero: int
 
 class ContactosResponse(ContactosCreate):
     id: int

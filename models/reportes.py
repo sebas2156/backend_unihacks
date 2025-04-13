@@ -6,6 +6,8 @@ class Reporte(Base):
     __tablename__ = 'reportes'
 
     id = Column(Integer, primary_key=True, index=True)
+    id_usuario = Column(Integer, nullable=False)
+    id_persona = Column(Integer, nullable=False)
     nombre = Column(Text, nullable=True)
     email = Column(Text, nullable=True)
     telefono = Column(Integer, nullable=True)
