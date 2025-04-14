@@ -3,8 +3,10 @@ from sqlalchemy.orm import Session
 from typing import List
 from sqlalchemy import func
 from uuid import UUID
-from models.guide import Guide, GuideCategory
-from schemas.guide_schema import GuideCreate, GuideResponse, GuideCategoryCreate, GuideCategoryResponse, PaginatedResponse
+from models.guides import Guide
+from models.guidecategories import GuideCategories
+from schemas.guides_schema import GuidesCreate, GuidesResponse, PaginatedGuidesResponse
+from schemas.guidecategories_schema import GuideCategoriesCreate, GuideCategoriesResponse, PaginatedGuideCategoriesResponse
 from database import SessionLocal
 from .auth import get_current_user  # Importamos la función para obtener el usuario actual
 from utils.logs import log_action #funcion de logs
@@ -19,25 +21,25 @@ def get_db():
     finally:
         db.close()
 
-# Rutas CRUD para GuideCategory
+# Rutas CRUD para GuideCategories
 
-@router.post("/guide-categories/", response_model=GuideCategoryResponse, tags=["guide"])
-def create_guide_category(category: GuideCategoryCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    db_category = GuideCategory(**category.dict())
+@router.post("/Guides-categories/", response_model=GuideCategoriesResponse, tags=["Guides"])
+def create_Guides_category(category: GuideCategoriesCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    db_category = GuideCategories(**category.dict())
     db.add(db_category)
     db.commit()
     db.refresh(db_category)
 
     # Registrar el log para la acción
-    log_action(db, action_type="POST", endpoint="/guide-categories/", user_id=current_user["sub"],
+    log_action(db, action_type="POST", endpoint="/Guides-categories/", user_id=current_user["sub"],
                details=str(category.dict()))
 
     return db_category
 
-@router.get("/guide-categories/", response_model=PaginatedResponse, tags=["guide"])
-def read_guide_categories(skip: int = Query(0, alias="pagina", ge=0), limit: int = Query(5, alias="por_pagina", ge=1), db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    total_registros = db.query(func.count(GuideCategory.id)).scalar()
-    categories = db.query(GuideCategory).offset(skip).limit(limit).all()
+@router.get("/Guides-categories/", response_model=PaginatedGuideCategoriesResponse, tags=["Guides"])
+def read_Guides_categories(skip: int = Query(0, alias="pagina", ge=0), limit: int = Query(5, alias="por_pagina", ge=1), db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    total_registros = db.query(func.count(GuideCategories.id)).scalar()
+    categories = db.query(GuideCategories).offset(skip).limit(limit).all()
     total_paginas = (total_registros + limit - 1) // limit
     pagina_actual = (skip // limit) + 1
 
@@ -49,16 +51,16 @@ def read_guide_categories(skip: int = Query(0, alias="pagina", ge=0), limit: int
         "data": categories
     }
 
-@router.get("/guide-categories/{category_id}", response_model=GuideCategoryResponse, tags=["guide"])
-def read_guide_category(category_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    category = db.query(GuideCategory).filter(GuideCategory.id == category_id).first()
+@router.get("/Guides-categories/{category_id}", response_model=GuideCategoriesResponse, tags=["Guides"])
+def read_Guides_category(category_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    category = db.query(GuideCategories).filter(GuideCategories.id == category_id).first()
     if category is None:
         raise HTTPException(status_code=404, detail="Category not found")
     return category
 
-@router.put("/guide-categories/{category_id}", response_model=GuideCategoryResponse, tags=["guide"])
-def update_guide_category(category_id: int, category: GuideCategoryCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    db_category = db.query(GuideCategory).filter(GuideCategory.id == category_id).first()
+@router.put("/Guides-categories/{category_id}", response_model=GuideCategoriesResponse, tags=["Guides"])
+def update_Guides_category(category_id: int, category: GuideCategoriesCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    db_category = db.query(GuideCategories).filter(GuideCategories.id == category_id).first()
     if db_category is None:
         raise HTTPException(status_code=404, detail="Category not found")
     for key, value in category.dict().items():
@@ -66,42 +68,42 @@ def update_guide_category(category_id: int, category: GuideCategoryCreate, db: S
     db.commit()
 
     # Registrar el log para la acción
-    log_action(db, action_type="PUT", endpoint=f"/guide-categories/{category_id}", user_id=current_user["sub"],
+    log_action(db, action_type="PUT", endpoint=f"/Guides-categories/{category_id}", user_id=current_user["sub"],
                details=str(category.dict()))
 
     return db_category
 
-@router.delete("/guide-categories/{category_id}", tags=["guide"])
-def delete_guide_category(category_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    db_category = db.query(GuideCategory).filter(GuideCategory.id == category_id).first()
+@router.delete("/Guides-categories/{category_id}", tags=["Guides"])
+def delete_Guides_category(category_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    db_category = db.query(GuideCategories).filter(GuideCategories.id == category_id).first()
     if db_category is None:
         raise HTTPException(status_code=404, detail="Category not found")
     db.delete(db_category)
     db.commit()
 
     # Registrar el log para la acción
-    log_action(db, action_type="DELETE", endpoint=f"/guide-categories/{category_id}", user_id=current_user["sub"])
+    log_action(db, action_type="DELETE", endpoint=f"/Guides-categories/{category_id}", user_id=current_user["sub"])
 
     return {"detail": "Category deleted"}
 
-# Rutas CRUD para Guide
+# Rutas CRUD para Guides
 
-@router.post("/guides/", response_model=GuideResponse, tags=["guide"])
-def create_guide(guide: GuideCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    db_guide = Guide(**guide.dict())
-    db.add(db_guide)
+@router.post("/Guides/", response_model=GuidesResponse, tags=["Guides"])
+def create_Guides(Guides: GuidesCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    db_Guides = Guides(**Guides.dict())
+    db.add(db_Guides)
     db.commit()
-    db.refresh(db_guide)
+    db.refresh(db_Guides)
 
     # Registrar el log para la acción
-    log_action(db, action_type="POST", endpoint="/guides/", user_id=current_user["sub"], details=str(guide.dict()))
+    log_action(db, action_type="POST", endpoint="/Guides/", user_id=current_user["sub"], details=str(Guides.dict()))
 
-    return db_guide
+    return db_Guides
 
-@router.get("/guides/", response_model=PaginatedResponse, tags=["guide"])
-def read_guides(skip: int = Query(0, alias="pagina", ge=0), limit: int = Query(5, alias="por_pagina", ge=1), db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+@router.get("/Guides/", response_model=PaginatedGuidesResponse, tags=["Guides"])
+def read_Guides(skip: int = Query(0, alias="pagina", ge=0), limit: int = Query(5, alias="por_pagina", ge=1), db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     total_registros = db.query(func.count(Guide.id)).scalar()
-    guides = db.query(Guide).offset(skip).limit(limit).all()
+    Guides = db.query(Guide).offset(skip).limit(limit).all()
     total_paginas = (total_registros + limit - 1) // limit
     pagina_actual = (skip // limit) + 1
 
@@ -110,40 +112,40 @@ def read_guides(skip: int = Query(0, alias="pagina", ge=0), limit: int = Query(5
         "por_pagina": limit,
         "pagina_actual": pagina_actual,
         "total_paginas": total_paginas,
-        "data": guides
+        "data": Guides
     }
 
-@router.get("/guides/{guide_id}", response_model=GuideResponse, tags=["guide"])
-def read_guide(guide_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    guide = db.query(Guide).filter(Guide.id == guide_id).first()
-    if guide is None:
-        raise HTTPException(status_code=404, detail="Guide not found")
-    return guide
+@router.get("/Guides/{Guides_id}", response_model=GuidesResponse, tags=["Guides"])
+def read_Guides(Guides_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    Guides = db.query(Guide).filter(Guide.id == Guides_id).first()
+    if Guides is None:
+        raise HTTPException(status_code=404, detail="Guides not found")
+    return Guides
 
-@router.put("/guides/{guide_id}", response_model=GuideResponse, tags=["guide"])
-def update_guide(guide_id: int, guide: GuideCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    db_guide = db.query(Guide).filter(Guide.id == guide_id).first()
-    if db_guide is None:
-        raise HTTPException(status_code=404, detail="Guide not found")
-    for key, value in guide.dict().items():
-        setattr(db_guide, key, value)
+@router.put("/Guides/{Guides_id}", response_model=GuidesResponse, tags=["Guides"])
+def update_Guides(Guides_id: int, Guides: GuidesCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    db_Guides = db.query(Guides).filter(Guides.id == Guides_id).first()
+    if db_Guides is None:
+        raise HTTPException(status_code=404, detail="Guides not found")
+    for key, value in Guides.dict().items():
+        setattr(db_Guides, key, value)
     db.commit()
 
     # Registrar el log para la acción
-    log_action(db, action_type="PUT", endpoint=f"/guides/{guide_id}", user_id=current_user["sub"],
-               details=str(guide.dict()))
+    log_action(db, action_type="PUT", endpoint=f"/Guides/{Guides_id}", user_id=current_user["sub"],
+               details=str(Guides.dict()))
 
-    return db_guide
+    return db_Guides
 
-@router.delete("/guides/{guide_id}", tags=["guide"])
-def delete_guide(guide_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    db_guide = db.query(Guide).filter(Guide.id == guide_id).first()
-    if db_guide is None:
-        raise HTTPException(status_code=404, detail="Guide not found")
-    db.delete(db_guide)
+@router.delete("/Guides/{Guides_id}", tags=["Guides"])
+def delete_Guides(Guides_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    db_Guides = db.query(Guide).filter(Guide.id == Guides_id).first()
+    if db_Guides is None:
+        raise HTTPException(status_code=404, detail="Guides not found")
+    db.delete(db_Guides)
     db.commit()
 
     # Registrar el log para la acción
-    log_action(db, action_type="DELETE", endpoint=f"/guides/{guide_id}", user_id=current_user["sub"])
+    log_action(db, action_type="DELETE", endpoint=f"/Guides/{Guides_id}", user_id=current_user["sub"])
 
-    return {"detail": "Guide deleted"}
+    return {"detail": "Guides deleted"}

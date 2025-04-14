@@ -9,6 +9,8 @@ from controllers.reportes_controller import router as reportes_router
 from controllers.contactos_controller import router as contactos_router
 from controllers.solicitudes_controller import router as solicitudes_router
 from controllers.dispositivos_controller import router as dispositivo_router
+from controllers.notificaciones_controller import router as notificaciones_router
+from controllers.dispositivoregistro_controller import router as dispositivo_registro_router
 from database import Base, engine
 
 app = FastAPI()
@@ -39,3 +41,5 @@ app.include_router(reportes_router, prefix="/api", tags=["Reports"])
 app.include_router(contactos_router, prefix="/api", tags=["Contactos"])
 app.include_router(solicitudes_router, prefix="/api", tags=["Solicitudes"])
 app.include_router(dispositivo_router, prefix="/api", tags=["Dispositivos"])
+app.include_router(notificaciones_router, prefix="/api", tags=["Notificaciones"])
+app.include_router(dispositivo_registro_router, prefix="/api", tags=["Dispositivo Registro"])
