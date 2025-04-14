@@ -72,11 +72,11 @@ def read_users(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Users not found")
     return users
 """""
-@router.get("/v1/user/{user_id}", tags=["User"])
+@router.get("/v1/user/{user_id}", tags=["Users"])
 def read_user(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(Users).filter(Users.id == user_id).first()
 
-    if users is None:
+    if user is None:
         raise HTTPException(status_code=404, detail="Users not found")
 
     return {
@@ -157,7 +157,7 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
-@router.post("/v1/users/login", tags=["Users"])
+@router.post("/v1/user/login", tags=["Users"])
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     # Buscar usuario por email
     users = db.query(Users).filter(Users.email == request.email).first()
@@ -177,7 +177,7 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     # Respuesta
     return {
         "message": "Inicio de sesión exitoso",
-        "users": {
+        "user": {
             "id": str(users.id),
             "email": users.email,
             "role": str(users.role)
