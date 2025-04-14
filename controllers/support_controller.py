@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List
 from uuid import UUID
 from sqlalchemy import func
-from models.support import SupportRequest
-from schemas.support_schema import SupportRequestCreate, SupportRequestResponse, PaginatedResponse
+from models.supportrequest import SupportRequest
+from schemas.supportrequest_schema import SupportRequestCreate, SupportRequestResponse, PaginatedSupportRequestResponse
 from database import SessionLocal
 from .auth import get_current_user  # Importamos la función para obtener el usuario actual
 from utils.logs import log_action #funcion de logs
@@ -35,7 +35,7 @@ def create_support_request(request: SupportRequestCreate, db: Session = Depends(
 
     return db_request
 
-@router.get("/support-requests/", response_model=PaginatedResponse, tags=["Support Request"])
+@router.get("/support-requests/", response_model=PaginatedSupportRequestResponse, tags=["Support Request"])
 def read_support_requests(skip: int = Query(0, alias="pagina", ge=0), limit: int = Query(5, alias="por_pagina", ge=1), db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     total_registros = db.query(func.count(SupportRequest.id)).scalar()
     requests = db.query(SupportRequest).offset(skip).limit(limit).all()

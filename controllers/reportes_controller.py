@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
 from sqlalchemy import func
-from models.reportes import Reporte  # Suponiendo que el modelo se llama 'Reporte', ajusta el nombre si es necesario.
-from schemas.reporte_schema import ReporteCreate, ReporteResponse, PaginatedReporteResponse
+from models.reportes import Reportes  # Suponiendo que el modelo se llama 'Reportes', ajusta el nombre si es necesario.
+from schemas.reportes_schema import ReportesCreate, ReportesResponse, PaginatedReportesResponse
 from database import SessionLocal
 from .auth import get_current_user  # Importamos la función para obtener el usuario actual
 from utils.logs import log_action #funcion de logs
@@ -18,10 +18,10 @@ def get_db():
     finally:
         db.close()
 
-# Crear un nuevo reporte
-@router.post("/reportes/", response_model=ReporteResponse, tags=["Reportes"])
-def create_report(report: ReporteCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    db_report = Reporte(**report.dict())  # Asumiendo que el modelo es Reporte
+# Crear un nuevo reportes
+@router.post("/reportes/", response_model=ReportesResponse, tags=["Reportes"])
+def create_report(report: ReportesCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    db_report = Reportes(**report.dict())  # Asumiendo que el modelo es Reportes
     db.add(db_report)
     db.commit()
     db.refresh(db_report)
@@ -32,10 +32,10 @@ def create_report(report: ReporteCreate, db: Session = Depends(get_db), current_
     return db_report
 
 # Obtener lista de reportes con paginación
-@router.get("/reportes/", response_model=PaginatedReporteResponse, tags=["Reportes"])
+@router.get("/reportes/", response_model=PaginatedReportesResponse, tags=["Reportes"])
 def read_reports(skip: int = Query(0, alias="pagina", ge=0), limit: int = Query(5, alias="por_pagina", ge=1), db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    total_registros = db.query(func.count(Reporte.id)).scalar()  # Cuenta el número total de registros
-    reports = db.query(Reporte).offset(skip).limit(limit).all()  # Obtiene los reportes con paginación
+    total_registros = db.query(func.count(Reportes.id)).scalar()  # Cuenta el número total de registros
+    reports = db.query(Reportes).offset(skip).limit(limit).all()  # Obtiene los reportes con paginación
     total_paginas = (total_registros + limit - 1) // limit  # Calcula el total de páginas
     pagina_actual = (skip // limit) + 1  # Calcula la página actual
     return {
@@ -46,20 +46,20 @@ def read_reports(skip: int = Query(0, alias="pagina", ge=0), limit: int = Query(
         "data": reports  # Devuelve los datos paginados
     }
 
-# Obtener reporte por ID
-@router.get("/reportes/{report_id}", response_model=ReporteResponse, tags=["Reportes"])
+# Obtener reportes por ID
+@router.get("/reportes/{report_id}", response_model=ReportesResponse, tags=["Reportes"])
 def read_report(report_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    report = db.query(Reporte).filter(Reporte.id == report_id).first()
+    report = db.query(Reportes).filter(Reportes.id == report_id).first()
     if report is None:
-        raise HTTPException(status_code=404, detail="Reporte no encontrado")
+        raise HTTPException(status_code=404, detail="Reportes no encontrado")
     return report
 
-# Actualizar reporte por ID
-@router.put("/reportes/{report_id}", response_model=ReporteResponse, tags=["Reportes"])
-def update_report(report_id: int, report: ReporteCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    db_report = db.query(Reporte).filter(Reporte.id == report_id).first()
+# Actualizar reportes por ID
+@router.put("/reportes/{report_id}", response_model=ReportesResponse, tags=["Reportes"])
+def update_report(report_id: int, report: ReportesCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    db_report = db.query(Reportes).filter(Reportes.id == report_id).first()
     if db_report is None:
-        raise HTTPException(status_code=404, detail="Reporte no encontrado")
+        raise HTTPException(status_code=404, detail="Reportes no encontrado")
     for key, value in report.dict().items():
         setattr(db_report, key, value)  # Actualiza los campos de la base de datos
     db.commit()
@@ -70,16 +70,16 @@ def update_report(report_id: int, report: ReporteCreate, db: Session = Depends(g
 
     return db_report
 
-# Eliminar reporte por ID
+# Eliminar reportes por ID
 @router.delete("/reportes/{report_id}", tags=["Reportes"])
 def delete_report(report_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    db_report = db.query(Reporte).filter(Reporte.id == report_id).first()
+    db_report = db.query(Reportes).filter(Reportes.id == report_id).first()
     if db_report is None:
-        raise HTTPException(status_code=404, detail="Reporte no encontrado")
-    db.delete(db_report)  # Elimina el reporte de la base de datos
+        raise HTTPException(status_code=404, detail="Reportes no encontrado")
+    db.delete(db_report)  # Elimina el reportes de la base de datos
     db.commit()
 
     # Registrar el log
     log_action(db, action_type="DELETE", endpoint=f"/reportes/{report_id}", user_id=current_user["sub"])
 
-    return {"detail": "Reporte eliminado"}
+    return {"detail": "Reportes eliminado"}

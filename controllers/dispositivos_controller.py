@@ -4,7 +4,7 @@ from typing import List
 from uuid import UUID
 from sqlalchemy import func
 from models.dispositivos import Dispositivos
-from schemas.dispositivos_schema import DispositivoCreate, DispositivoResponse, PaginatedDispositivoResponse
+from schemas.dispositivos_schema import DispositivosCreate, DispositivosResponse, PaginatedDispositivosResponse
 from database import SessionLocal
 from .auth import get_current_user  # Importamos la función para obtener el usuario actual
 from utils.logs import log_action #funcion de logs
@@ -20,8 +20,8 @@ def get_db():
         db.close()
 
 # Crear un nuevo dispositivos
-@router.post("/dispositivoss/", response_model=DispositivoResponse, tags=["Dispositivo"])
-def create_dispositivos(dispositivos: DispositivoCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+@router.post("/dispositivoss/", response_model=DispositivosResponse, tags=["Dispositivo"])
+def create_dispositivos(dispositivos: DispositivosCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     db_dispositivos = Dispositivos(**dispositivos.dict())
     db.add(db_dispositivos)
     db.commit()
@@ -33,7 +33,7 @@ def create_dispositivos(dispositivos: DispositivoCreate, db: Session = Depends(g
     return db_dispositivos
 
 # Obtener lista de dispositivoss con paginación
-@router.get("/dispositivoss/", response_model=PaginatedDispositivoResponse, tags=["Dispositivo"])
+@router.get("/dispositivoss/", response_model=PaginatedDispositivosResponse, tags=["Dispositivo"])
 def read_dispositivoss(skip: int = Query(0, alias="pagina", ge=0), limit: int = Query(5, alias="por_pagina", ge=1), db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     total_registros = db.query(func.count(Dispositivos.codigo_dispositivo)).scalar()
     dispositivoss = db.query(Dispositivos).offset(skip).limit(limit).all()
@@ -48,7 +48,7 @@ def read_dispositivoss(skip: int = Query(0, alias="pagina", ge=0), limit: int = 
     }
 
 # Obtener dispositivos por ID
-@router.get("/dispositivoss/{dispositivos_id}", response_model=DispositivoResponse, tags=["Dispositivo"])
+@router.get("/dispositivoss/{dispositivos_id}", response_model=DispositivosResponse, tags=["Dispositivo"])
 def read_dispositivos(dispositivos_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     dispositivos = db.query(Dispositivos).filter(Dispositivos.codigo_dispositivo == dispositivos_id).first()
     if dispositivos is None:
@@ -56,8 +56,8 @@ def read_dispositivos(dispositivos_id: int, db: Session = Depends(get_db), curre
     return dispositivos
 
 # Actualizar dispositivos por ID
-@router.put("/dispositivoss/{dispositivos_id}", response_model=DispositivoResponse, tags=["Dispositivo"])
-def update_dispositivos(dispositivos_id: int, dispositivos: DispositivoCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+@router.put("/dispositivoss/{dispositivos_id}", response_model=DispositivosResponse, tags=["Dispositivo"])
+def update_dispositivos(dispositivos_id: int, dispositivos: DispositivosCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     db_dispositivos = db.query(Dispositivos).filter(Dispositivos.codigo_dispositivo == dispositivos_id).first()
     if db_dispositivos is None:
         raise HTTPException(status_code=404, detail="Dispositivo not found")

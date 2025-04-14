@@ -1,18 +1,21 @@
 from pydantic import BaseModel
-from typing import List
+from typing import Optional, List
+import datetime
 
-class DispositivoCreate(BaseModel):
+
+class DispositivosCreate(BaseModel):
     codigo_dispositivo: str
-    id_usuario: str
-    nombre_contacto: str
+    id_usuario: int
+    nombre_dispositivo: str
+    contraseña: str = None
 
-class DispositivoResponse(DispositivoCreate):
-    codigo_dispositivo: str
+class DispositivosResponse(DispositivosCreate):
+    id: int
 
-# Nuevo esquema de respuesta para paginación de usuarios
-class PaginatedDispositivoResponse(BaseModel):
+
+class PaginatedDispositivosResponse(BaseModel):
     total_registros: int
     por_pagina: int
     pagina_actual: int
     total_paginas: int
-    data: List[DispositivoResponse]
+    data: List[DispositivosResponse]
