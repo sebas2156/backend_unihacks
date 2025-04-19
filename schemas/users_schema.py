@@ -10,10 +10,10 @@ class UsersCreate(BaseModel):
     status: str
     role: str
     password: str
-    numero: str
-    token_firebase: str
-    linea_telefonica: str
-    username: str
+    numero: str = None
+    token_firebase: str = None
+    linea_telefonica: str = None
+    username: str = None
     name: str = None
 
 class UsersResponse(UsersCreate):

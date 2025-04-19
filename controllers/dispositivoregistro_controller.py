@@ -20,7 +20,7 @@ def get_db():
         db.close()
 
 # Crear una nueva dispositivoregistro
-@router.post("/dispositivoregistros/", response_model=DispositivoRegistroResponse, tags=["DispositivoRegistro"])
+@router.post("/dispositivoregistros/", response_model=DispositivoRegistroResponse, tags=["Dispositivo Registro"])
 def create_dispositivoregistro(dispositivoregistro: DispositivoRegistroCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     db_dispositivoregistro = DispositivoRegistro(**dispositivoregistro.dict())
     db.add(db_dispositivoregistro)
@@ -33,7 +33,7 @@ def create_dispositivoregistro(dispositivoregistro: DispositivoRegistroCreate, d
     return db_dispositivoregistro
 
 # Obtener lista de dispositivoregistros con paginación
-@router.get("/dispositivoregistros/", response_model=PaginatedDispositivoRegistroResponse, tags=["DispositivoRegistro"])
+@router.get("/dispositivoregistros/", response_model=PaginatedDispositivoRegistroResponse, tags=["Dispositivo Registro"])
 def read_dispositivoregistros(skip: int = Query(0, alias="pagina", ge=0), limit: int = Query(5, alias="por_pagina", ge=1), db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     total_registros = db.query(func.count(DispositivoRegistro.id)).scalar()
     dispositivoregistros = db.query(DispositivoRegistro).offset(skip).limit(limit).all()
@@ -48,7 +48,7 @@ def read_dispositivoregistros(skip: int = Query(0, alias="pagina", ge=0), limit:
     }
 
 # Obtener dispositivoregistro por ID
-@router.get("/dispositivoregistros/{dispositivoregistro_id}", response_model=DispositivoRegistroResponse, tags=["DispositivoRegistro"])
+@router.get("/dispositivoregistros/{dispositivoregistro_id}", response_model=DispositivoRegistroResponse, tags=["Dispositivo Registro"])
 def read_dispositivoregistro(dispositivoregistro_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     dispositivoregistro = db.query(DispositivoRegistro).filter(DispositivoRegistro.id == dispositivoregistro_id).first()
     if dispositivoregistro is None:
@@ -56,7 +56,7 @@ def read_dispositivoregistro(dispositivoregistro_id: int, db: Session = Depends(
     return dispositivoregistro
 
 # Actualizar dispositivoregistro por ID
-@router.put("/dispositivoregistros/{dispositivoregistro_id}", response_model=DispositivoRegistroResponse, tags=["DispositivoRegistro"])
+@router.put("/dispositivoregistros/{dispositivoregistro_id}", response_model=DispositivoRegistroResponse, tags=["Dispositivo Registro"])
 def update_dispositivoregistro(dispositivoregistro_id: int, dispositivoregistro: DispositivoRegistroCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     db_dispositivoregistro = db.query(DispositivoRegistro).filter(DispositivoRegistro.id == dispositivoregistro_id).first()
     if db_dispositivoregistro is None:
@@ -72,7 +72,7 @@ def update_dispositivoregistro(dispositivoregistro_id: int, dispositivoregistro:
     return db_dispositivoregistro
 
 # Eliminar dispositivoregistro por ID
-@router.delete("/dispositivoregistros/{dispositivoregistro_id}", tags=["DispositivoRegistro"])
+@router.delete("/dispositivoregistros/{dispositivoregistro_id}", tags=["Dispositivo Registro"])
 def delete_dispositivoregistro(dispositivoregistro_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     db_dispositivoregistro = db.query(DispositivoRegistro).filter(DispositivoRegistro.id == dispositivoregistro_id).first()
     if db_dispositivoregistro is None:
