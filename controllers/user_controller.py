@@ -49,19 +49,28 @@ def create_users(users: UsersCreate, db: Session = Depends(get_db)):
 
 # Obtener lista de usuarios con paginación
 @router.get("/users/", response_model=PaginatedUsersResponse, tags=["Users"])
-def read_users(skip: int = Query(0, alias="pagina", ge=0), limit: int = Query(5, alias="por_pagina", ge=1),
-               db: Session = Depends(get_db)):
-    total_registros = db.query(func.count(Users.id)).scalar()
-    users = db.query(Users).offset(skip).limit(limit).all()
-    total_paginas = (total_registros + limit - 1) // limit
-    pagina_actual = (skip // limit) + 1
+def read_users(
+    pagina: int = Query(1, alias="pagina", ge=1),
+    limit: int = Query(5, alias="por_pagina", ge=1),
+    db: Session = Depends(get_db)
+):
+    total_registros = db.query(func.count(Users.id)).scalar()  # Cuenta el número total de registros
+    total_paginas = (total_registros + limit - 1) // limit  # Calcula el total de páginas
+    offset = (pagina - 1) * limit  # Calcula el offset correcto
+
+    if offset >= total_registros and total_registros != 0:
+        raise HTTPException(status_code=404, detail="Página fuera de rango")
+
+    users = db.query(Users).offset(offset).limit(limit).all()  # Obtiene los usuarios con paginación
+
     return {
         "total_registros": total_registros,
         "por_pagina": limit,
-        "pagina_actual": pagina_actual,
+        "pagina_actual": pagina,
         "total_paginas": total_paginas,
-        "data": users
+        "data": users  # Devuelve los datos paginados
     }
+
 
 """""
 # Obtener usuario por ID

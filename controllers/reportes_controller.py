@@ -33,18 +33,29 @@ def create_report(report: ReportesCreate, db: Session = Depends(get_db), current
 
 # Obtener lista de reportes con paginación
 @router.get("/reportes/", response_model=PaginatedReportesResponse, tags=["Reportes"])
-def read_reports(skip: int = Query(0, alias="pagina", ge=0), limit: int = Query(5, alias="por_pagina", ge=1), db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+def read_reports(
+    pagina: int = Query(1, alias="pagina", ge=1),
+    limit: int = Query(5, alias="por_pagina", ge=1),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
     total_registros = db.query(func.count(Reportes.id)).scalar()  # Cuenta el número total de registros
-    reports = db.query(Reportes).offset(skip).limit(limit).all()  # Obtiene los reportes con paginación
     total_paginas = (total_registros + limit - 1) // limit  # Calcula el total de páginas
-    pagina_actual = (skip // limit) + 1  # Calcula la página actual
+    offset = (pagina - 1) * limit  # Calcula el offset correcto
+
+    if offset >= total_registros and total_registros != 0:
+        raise HTTPException(status_code=404, detail="Página fuera de rango")
+
+    reports = db.query(Reportes).offset(offset).limit(limit).all()  # Obtiene los reportes con paginación
+
     return {
         "total_registros": total_registros,
         "por_pagina": limit,
-        "pagina_actual": pagina_actual,
+        "pagina_actual": pagina,
         "total_paginas": total_paginas,
         "data": reports  # Devuelve los datos paginados
     }
+
 
 # Obtener reportes por ID
 @router.get("/reportes/{report_id}", response_model=ReportesResponse, tags=["Reportes"])

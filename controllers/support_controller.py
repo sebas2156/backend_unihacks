@@ -36,18 +36,29 @@ def create_support_request(request: SupportRequestCreate, db: Session = Depends(
     return db_request
 
 @router.get("/support-requests/", response_model=PaginatedSupportRequestResponse, tags=["Support Request"])
-def read_support_requests(skip: int = Query(0, alias="pagina", ge=0), limit: int = Query(5, alias="por_pagina", ge=1), db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
-    total_registros = db.query(func.count(SupportRequest.id)).scalar()
-    requests = db.query(SupportRequest).offset(skip).limit(limit).all()
-    total_paginas = (total_registros + limit - 1) // limit
-    pagina_actual = (skip // limit) + 1
+def read_support_requests(
+    pagina: int = Query(1, alias="pagina", ge=1),
+    limit: int = Query(5, alias="por_pagina", ge=1),
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    total_registros = db.query(func.count(SupportRequest.id)).scalar()  # Cuenta el número total de registros
+    total_paginas = (total_registros + limit - 1) // limit  # Calcula el total de páginas
+    offset = (pagina - 1) * limit  # Calcula el offset correcto
+
+    if offset >= total_registros and total_registros != 0:
+        raise HTTPException(status_code=404, detail="Página fuera de rango")
+
+    requests = db.query(SupportRequest).offset(offset).limit(limit).all()  # Obtiene las solicitudes con paginación
+
     return {
         "total_registros": total_registros,
         "por_pagina": limit,
-        "pagina_actual": pagina_actual,
+        "pagina_actual": pagina,
         "total_paginas": total_paginas,
-        "data": requests
+        "data": requests  # Devuelve los datos paginados
     }
+
 
 @router.get("/support-requests/{request_id}", response_model=SupportRequestResponse, tags=["Support Request"])
 def read_support_request(request_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
